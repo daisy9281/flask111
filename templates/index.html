@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>包搜索工具</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #333; }
+        form { 
+            margin-bottom: 10px; 
+            display: flex; 
+            flex-wrap: wrap; 
+            align-items: flex-start; 
+            gap: 10px; 
+            width: 100%;
+        }  /* 增加表单宽度和flex布局 */
+
+        input { 
+            padding: 8px; 
+            flex-grow: 1; 
+            min-width: 200px; 
+            white-space: normal; 
+            word-wrap: break-word; 
+            overflow: hidden; /* 改为hidden以避免滚动条 */
+            min-height: 40px; /* 增加最小高度 */
+            resize: vertical; 
+            font-size: 16px; /* 增大字体大小 */
+        }  /* 修改输入框样式，使其自适应宽度和自动换行 */
+
+        button { 
+            padding: 8px 15px; 
+            background-color: #4CAF50; 
+            color: white; 
+            border: none; 
+            cursor: pointer; 
+            align-self: flex-start; 
+            margin-top: 2px; 
+        }  /* 调整按钮对齐方式 */
+
+        .checkbox-container { 
+            width: 100%; 
+            margin-top: 5px; 
+            text-align: left; 
+        }  /* 添加checkbox容器样式 */
+        .widthcheckbox {
+            width: 40px; /* 你需要的宽度 */
+            height: auto; /* 避免高度拉伸，保持原生比例 */
+            padding: 0; /* 清除全局 input 可能带的内边距 */
+            margin: 0; /* 可选：清除默认外边距，避免错位 */
+            vertical-align: middle; /* 可选：让复选框与文字垂直居中对齐 */
+        }
+        button:hover { background-color: #45a049; }
+        .results { margin-top: 10px; }  /* 减少结果区域顶部边距 */
+        table { border-collapse: collapse; width: 100%; }
+        th, td { text-align: left; padding: 8px; border-bottom: 1px solid #ddd; }
+        th { background-color: #f2f2f2; }
+        .tab { overflow: hidden; border: 1px solid #ccc; background-color: #f1f1f1; display: flex; }
+        .tab button { background-color: inherit; flex: 1; border: none; outline: none; cursor: pointer; padding: 14px 16px; transition: 0.3s; color: black; text-align: center; }
+        .tab button:hover { background-color: #ddd; }
+        .tab button.active { background-color: #ccc; font-weight: bold; }
+        .tabcontent { display: none; padding: 15px; border: 1px solid #ccc; border-top: none; background-color: white; }
+        .tabcontent.active { display: block; }
+    
+        /* 历史记录样式 - 修改为非绝对定位 */
+        .history-container { margin: 10px 0; width: 100%; }
+        .history-list { background-color: white; overflow-x: auto; border: 1px solid #ddd; display: flex; flex-wrap: wrap; padding: 5px; gap: 5px; }
+        .history-item { padding: 5px 10px; cursor: pointer; border: 1px solid #eee; border-radius: 4px; background-color: #f9f9f9; white-space: nowrap; }
+        .history-item:hover { background-color: #e6f7ff; }
+        .history-item.selected { background-color: #e6f7ff; }
+        .history-header { font-weight: bold; padding: 5px 8px; background-color: #f0f0f0; border-bottom: 1px solid #ddd; width: 100%; }
+        .clear-history { font-size: 12px; color: #666; cursor: pointer; float: right; }
+        .clear-history:hover { color: #333; }
+    </style>
+    <script>
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].classList.remove("active");
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tablinks");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].classList.remove("active");
+            }
+            document.getElementById(tabName).classList.add("active");
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.classList.add("active");
+        }
+    
+        // 默认显示第一个标签
+        document.addEventListener("DOMContentLoaded", function() {
+            // 确保标签按钮存在
+            const tabButtons = document.getElementsByClassName("tablinks");
+            if (tabButtons.length > 0) {
+                tabButtons[0].click();
+            }
+    
+            // 加载搜索历史
+            loadSearchHistory();
+    
+            // 表单提交事件
+            const searchForm = document.querySelector('form');
+            if (searchForm) {
+                searchForm.addEventListener('submit', function(event) {
+                    const keyword = document.querySelector('input[name="keyword"]').value.trim();
+                    console.log(keyword);
+                    if (keyword) {
+                        saveSearchHistory(keyword);
+                    }
+                });
+            }
+        });
+        
+       
+        
+        // 保存搜索历史
+        function saveSearchHistory(keyword) {
+            if (!keyword || keyword.trim() === '') return;
+            
+            let history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+            
+            // 避免重复添加
+            if (!history.includes(keyword)) {
+                history.unshift(keyword);  // 添加到开头
+                if (history.length > 100) {  // 最多保留100条记录
+                    history = history.slice(0, 100);
+                }
+                localStorage.setItem('searchHistory', JSON.stringify(history));
+            }
+            
+            loadSearchHistory();
+        }
+        
+        // 加载搜索历史
+        function loadSearchHistory() {
+            const historyList = document.querySelector('.history-list');
+            const history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+            
+            if (history.length === 0) {
+                historyList.innerHTML = '<div class="history-header">搜索历史</div><div class="history-item">暂无搜索历史</div>';
+                return;
+            }
+            //添加默认历史记录
+            history.unshift('zego_uikit,zego_uikit_prebuilt_call,zego_uikit_signaling_plugin');
+            let html = '<div class="history-header">搜索历史 <span class="clear-history" onclick="clearSearchHistory()">清除</span></div>';
+            history.forEach(item => {
+                html += `<div class="history-item" onclick="selectHistoryItem('${item}')">${item}</div>`;
+            });
+            
+            historyList.innerHTML = html;
+        }
+        
+        // 选择历史记录项
+        function selectHistoryItem(keyword) {
+            const searchInput = document.querySelector('input[name="keyword"]');
+            const currentValue = searchInput.value.trim();
+            
+            if (currentValue === '') {
+                searchInput.value = keyword;
+            } else if (!currentValue.includes(keyword)) {
+                searchInput.value = `${currentValue}, ${keyword}`;
+            }
+        }
+        
+        // 清除搜索历史
+        function clearSearchHistory() {
+            localStorage.removeItem('searchHistory');
+            loadSearchHistory();
+        }
+        
+    
+    </script>
+</head>
+<body>
+    <h1>包搜索工具</h1>
+    <form action="/search" method="post">
+        <input type="text" name="keyword" placeholder="请输入搜索关键词，多个包名用逗号分隔" value="{{ keyword }}" required>
+        <button type="submit">搜索</button>
+        <div class="checkbox-container">
+            <label><input type="checkbox" name="exact_match" class="widthcheckbox"> 精准查询（每个包名只显示第一个结果）</label>
+        </div>
+    </form>
+    
+    <!-- 搜索历史区域 - 移到表单外部 -->
+    <div class="history-container">
+        <div class="history-list"></div>
+    </div>
+    
+    <div class="results">
+        <div class="tab">
+            <button class="tablinks active" onclick="openTab(event, 'pubdev')">Pub.dev 结果</button>
+            <button class="tablinks" onclick="openTab(event, 'npmjs')">NPM.js 结果</button>
+        </div>
+    
+        <div id="pubdev" class="tabcontent active">
+            <h2>Pub.dev 搜索结果 (关键词: {{ keyword }})</h2>
+            {% if pubdev_data %}
+            <table>
+                <tr>
+                    <th>包名</th>
+                    <th>版本</th>
+                    <th>更新时间</th>
+                </tr>
+                {% for item in pubdev_data %}
+                <tr>
+                    <td>{{ item[0] }}</td>
+                    <td>{{ item[1] }}</td>
+                    <td>{{ item[2] }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+            <p>没有找到相关的包信息</p>
+            {% endif %}
+        </div>
+    
+        <div id="npmjs" class="tabcontent">
+            <h2>NPM.js 搜索结果 (关键词: {{ keyword }})</h2>
+            {% if npmjs_data %}
+            <table>
+                <tr>
+                    <th>包名</th>
+                    <th>版本</th>
+                    <th>其他信息</th>
+                </tr>
+                {% for item in npmjs_data %}
+                <tr>
+                    <td>{{ item[0] }}</td>
+                    <td>{{ item[1] }}</td>
+                    <td>{{ item[2] }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+            <p>没有找到相关的包信息</p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
