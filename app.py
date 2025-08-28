@@ -3,6 +3,8 @@ import os
 import sys
 import re
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 from bs4 import BeautifulSoup
 
 app = Flask(__name__)
@@ -14,8 +16,16 @@ def get_zego_packages(word):
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
     }
     
+    # 配置请求会话和重试机制
+    session = requests.Session()
+    retry = Retry(total=3, backoff_factor=0.3, status_forcelist=[500, 502, 503, 504])
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+    
     try:
-        response = requests.get(url, headers=headers)
+        # 禁用代理（如果不需要）或配置正确的代理
+        response = session.get(url, headers=headers, timeout=10, proxies={})
         response.raise_for_status()
     except requests.exceptions.RequestException as e:
         print(f"请求失败: pubdev failed: {e}")
@@ -56,13 +66,21 @@ def get_zego_packages(word):
     return data
 
 def get_npmjs_packages(word):
-    # get https://www.npmjs.com/search?q=zego resp
     url = f"https://www.npmjs.com/search?q={word}"
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
     }
+    
+    # 配置请求会话和重试机制
+    session = requests.Session()
+    retry = Retry(total=3, backoff_factor=0.3, status_forcelist=[500, 502, 503, 504])
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+    
     try:
-        response = requests.get(url, headers=headers)
+        # 禁用代理（如果不需要）或配置正确的代理
+        response = session.get(url, headers=headers, timeout=10, proxies={})
         response.raise_for_status()
     except requests.exceptions.RequestException as e:
         print(f"请求失败: npmjs failed: {e}")
