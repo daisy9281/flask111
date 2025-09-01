@@ -108,6 +108,11 @@
                     console.log(keyword);
                     if (keyword) {
                         saveSearchHistory(keyword);
+                        // 清空之前的搜索结果
+                        document.getElementById('pubdev').querySelector('table')?.remove();
+                        document.getElementById('npmjs').querySelector('table')?.remove();
+                        document.getElementById('pubdev').innerHTML = '<h2>Pub.dev 搜索结果 (关键词: {{ keyword }})</h2><p style="color: #ff0000;">正在加载数据...</p>';
+                        document.getElementById('npmjs').innerHTML = '<h2>NPM.js 搜索结果 (关键词: {{ keyword }})</h2><p style="color: #ff0000;">正在加载数据...</p>';
                     }
                 });
             }
@@ -138,12 +143,13 @@
             const historyList = document.querySelector('.history-list');
             const history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
             
+            //固定搜索历史
+            history.unshift('zego_uikit,zego_uikit_prebuilt_call,zego_uikit_signaling_plugin');
+
             if (history.length === 0) {
                 historyList.innerHTML = '<div class="history-header">搜索历史</div><div class="history-item">暂无搜索历史</div>';
                 return;
             }
-            //添加默认历史记录
-            history.unshift('zego_uikit,zego_uikit_prebuilt_call,zego_uikit_signaling_plugin');
             let html = '<div class="history-header">搜索历史 <span class="clear-history" onclick="clearSearchHistory()">清除</span></div>';
             history.forEach(item => {
                 html += `<div class="history-item" onclick="selectHistoryItem('${item}')">${item}</div>`;
@@ -179,7 +185,7 @@
         <input type="text" name="keyword" placeholder="请输入搜索关键词，多个包名用逗号分隔" value="{{ keyword }}" required>
         <button type="submit">搜索</button>
         <div class="checkbox-container">
-            <label><input type="checkbox" name="exact_match" class="widthcheckbox"> 精准查询（每个包名只显示第一个结果）</label>
+            <label><input type="checkbox" name="exact_match" class="widthcheckbox" checked> 精准查询（每个包名只显示第一个结果）</label>
         </div>
     </form>
     
