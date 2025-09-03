@@ -143,13 +143,16 @@
             const historyList = document.querySelector('.history-list');
             const history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
             
-            //固定搜索历史
-            history.unshift('zego_uikit,zego_uikit_prebuilt_call,zego_uikit_signaling_plugin');
+            //如果没有就插入
+            if (!history.includes('zego_uikit,zego_uikit_prebuilt_call,zego_uikit_signaling_plugin')) {
+                history.unshift('zego_uikit,zego_uikit_prebuilt_call,zego_uikit_signaling_plugin');
+            }
 
             if (history.length === 0) {
                 historyList.innerHTML = '<div class="history-header">搜索历史</div><div class="history-item">暂无搜索历史</div>';
                 return;
             }
+            
             let html = '<div class="history-header">搜索历史 <span class="clear-history" onclick="clearSearchHistory()">清除</span></div>';
             history.forEach(item => {
                 html += `<div class="history-item" onclick="selectHistoryItem('${item}')">${item}</div>`;

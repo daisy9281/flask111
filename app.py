@@ -101,7 +101,7 @@ def get_npmjs_packages(word):
 
 @app.route('/')
 def index():
-    return render_template('index.html', keyword='zego')
+    return render_template('index.html', keyword='')
 
 @app.route('/search', methods=['POST'])
 def search():
