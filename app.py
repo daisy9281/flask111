@@ -1,141 +1,90 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request
 import os
-import sys
-import re
-import requests
-from bs4 import BeautifulSoup
+
+# 导入新创建的独立模块
+from pub_search import search_flutter_packages
+from npm_search import search_npm_packages
 
 app = Flask(__name__)
 
-# 导入原有的函数
-def get_zego_packages(word):
-    url = f"https://pub.dev/packages?q={word}"
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-    }
-    
-    try:
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()
-    except requests.exceptions.RequestException as e:
-        print(f"请求失败: pubdev failed: {e}")
-        return []
-    soup = BeautifulSoup(response.text, 'html.parser')
-    # 1. find div class="packages"
-    packages = soup.find('div', class_='packages')
-    if not packages:
-        return []
-    # 2. loop divs
-    results = ["name", "version", "update_time"]
-    data = []
-    for package in packages.find_all('div', class_='packages-item'):
-        res = []
-        # get packages-header text
-        header = package.find('div', class_='packages-header')
-        if not header:
-            continue
-        #find h3/a in header
-        h3 = header.find('h3')
-        if not h3:
-            continue
-        a = h3.find('a')
-        if not a:
-            continue
-        res.append(a.text)
-        # find span packages-metadata-block
-        metadata = package.find('span', class_='packages-metadata-block')
-        if not metadata:
-            continue
-        # find multi a
-        a = metadata.find_all('a')
-        if len(a) < 2:
-            continue
-        res.append(a[0].text)
-        res.append(a[1].text)
-        data.append(res)
-    return data
+# 注入当前年份
+def inject_current_year():
+    import datetime
+    return {'current_year': datetime.datetime.now().year}
 
-def get_npmjs_packages(word):
-    # get https://www.npmjs.com/search?q=zego resp
-    url = f"https://www.npmjs.com/search?q={word}"
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-    }
-    try:
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()
-    except requests.exceptions.RequestException as e:
-        print(f"请求失败: npmjs failed: {e}")
-        return []
-    # soup
-    soup = BeautifulSoup(response.text, 'html.parser')
-    # 1.find all section
-    sections = soup.find_all('section')
-    # loop sections
-    data = []
-    for section in sections:
-        res = []
-        # 1.find a target="_self"
-        a = section.find('a', target="_self")
-        if a is None:
-            continue
-        #find h3
-        h3 = a.find('h3')
-        if not h3:
-            continue
-        res.append(h3.text)
-        # 2.find span class iclass="_66c2abad flex-grow-1"
-        span = section.find('span', class_="_66c2abad flex-grow-1")
-        if not span:
-            continue
-        # span.text 删除非ascii字符
-        span_text = span.text.encode('ascii', 'ignore').decode('ascii').split()
-        if not span_text:
-            continue
-        version = span_text[0]
-        others = " ".join(span_text[1:4]) if len(span_text) > 1 else ""
-        res.append(version)
-        res.append(others)
-        data.append(res)
-    return data
+app.context_processor(inject_current_year)
 
 @app.route('/')
 def index():
-    return render_template('index.html', keyword='')
+    # 设置默认的精准查询状态为True
+    return render_template('index.html', 
+                          pub_exact_match=True,
+                          npm_exact_match=True)
 
-@app.route('/search', methods=['POST'])
-def search():
-    keyword = request.form.get('keyword', 'zego')
-    exact_match = request.form.get('exact_match') == 'on'  # 获取精准查询状态
+# Pub搜索路由
+@app.route('/search-pub', methods=['POST'])
+def search_pub():
+    # 同时支持表单和JSON请求
+    if request.is_json:
+        data = request.get_json()
+        keyword = data.get('pub_keyword', '')
+        exact_match = data.get('pub_exact_match', False)
+    else:
+        # 获取关键词，不设置默认值
+        keyword = request.form.get('pub_keyword', '')
+        exact_match = request.form.get('pub_exact_match') == 'on'  # 获取精准查询状态
     
     # 分割逗号分隔的包名
     keywords = [kw.strip() for kw in keyword.split(',') if kw.strip()]
     
-    # 初始化结果列表
-    pubdev_data = []
-    npmjs_data = []
+    # 如果没有关键词，不执行搜索
+    if not keywords:
+        pubdev_data = []
+    else:
+        # 使用独立模块进行搜索
+        pubdev_data = search_flutter_packages(keywords, exact_match)
     
-    # 对每个包名进行查询
-    for kw in keywords:
-        # 获取数据
-        pub_results = get_zego_packages(kw)
-        npm_results = get_npmjs_packages(kw)
-        
-        # 根据精准查询状态决定是否只取第一个结果
-        if pub_results:
-            if exact_match:
-                pubdev_data.append(pub_results[0])  # 只添加第一个结果
-            else:
-                pubdev_data.extend(pub_results)  # 添加所有结果
-        if npm_results:
-            if exact_match:
-                npmjs_data.append(npm_results[0])  # 只添加第一个结果
-            else:
-                npmjs_data.extend(npm_results)  # 添加所有结果
+    # 打印搜索结果
+    print(f"搜索关键词: {keyword}")
+    print(f"精准查询: {exact_match}")
+    print(f"搜索结果数量: {len(pubdev_data)}")
+    print("搜索结果:")
+    for i, result in enumerate(pubdev_data, 1):
+        print(f"  {i}. {result}")
     
     return render_template('index.html', 
-                          keyword=keyword,
-                          pubdev_data=pubdev_data,
+                          active_tab='pub',
+                          pub_keyword=keyword,
+                          pub_exact_match=exact_match,
+                          pubdev_data=pubdev_data)
+
+# NPM搜索路由
+@app.route('/search-npm', methods=['POST'])
+def search_npm():
+    # 同时支持表单和JSON请求
+    if request.is_json:
+        data = request.get_json()
+        keyword = data.get('npm_keyword', '')
+        exact_match = data.get('npm_exact_match', False)
+    else:
+        # 获取关键词，不设置默认值
+        keyword = request.form.get('npm_keyword', '')
+        exact_match = request.form.get('npm_exact_match') == 'on'  # 获取精准查询状态
+    
+    # 分割逗号分隔的包名
+    keywords = [kw.strip() for kw in keyword.split(',') if kw.strip()]
+    
+    # 如果没有关键词，不执行搜索
+    if not keywords:
+        npmjs_data = []
+    else:
+        # 使用独立模块进行搜索
+        npmjs_data = search_npm_packages(keywords, exact_match)
+    
+    return render_template('index.html', 
+                          active_tab='npm',
+                          npm_keyword=keyword,
+                          npm_exact_match=exact_match,
                           npmjs_data=npmjs_data)
 
 if __name__ == '__main__':
@@ -246,7 +195,10 @@ if __name__ == '__main__':
     </div>
 </body>
 </html>''')
-    # 解析命令行参数获取端口
+
+# 确保在生产环境中使用正确的配置
+if __name__ == '__main__':
+    # 解析命令行参数获取端口（仅用于本地开发）
     import sys
     port = 5000  # 默认端口
     if len(sys.argv) > 2 and sys.argv[1] == '--port':
@@ -254,5 +206,10 @@ if __name__ == '__main__':
             port = int(sys.argv[2])
         except ValueError:
             print('Invalid port number, using default 5000')
-    # 启动应用
+    # 本地开发模式启动应用
     app.run(debug=True, host='0.0.0.0', port=port)
+
+# Vercel部署需要的WSGI应用
+gunicorn_app = app
+# 也支持ASGI应用格式，保持兼容性
+application = app

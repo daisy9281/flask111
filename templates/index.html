@@ -3,136 +3,1150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>包搜索工具</title>
+    <title>包搜索工具 | 跨平台包信息查询</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        h1 { color: #333; }
-        form { 
-            margin-bottom: 10px; 
-            display: flex; 
-            flex-wrap: wrap; 
-            align-items: flex-start; 
-            gap: 10px; 
-            width: 100%;
-        }  /* 增加表单宽度和flex布局 */
-
-        input { 
-            padding: 8px; 
-            flex-grow: 1; 
-            min-width: 200px; 
-            white-space: normal; 
-            word-wrap: break-word; 
-            overflow: hidden; /* 改为hidden以避免滚动条 */
-            min-height: 40px; /* 增加最小高度 */
-            resize: vertical; 
-            font-size: 16px; /* 增大字体大小 */
-        }  /* 修改输入框样式，使其自适应宽度和自动换行 */
-
-        button { 
-            padding: 8px 15px; 
-            background-color: #4CAF50; 
-            color: white; 
-            border: none; 
-            cursor: pointer; 
-            align-self: flex-start; 
-            margin-top: 2px; 
-        }  /* 调整按钮对齐方式 */
-
-        .checkbox-container { 
-            width: 100%; 
-            margin-top: 5px; 
-            text-align: left; 
-        }  /* 添加checkbox容器样式 */
-        .widthcheckbox {
-            width: 40px; /* 你需要的宽度 */
-            height: auto; /* 避免高度拉伸，保持原生比例 */
-            padding: 0; /* 清除全局 input 可能带的内边距 */
-            margin: 0; /* 可选：清除默认外边距，避免错位 */
-            vertical-align: middle; /* 可选：让复选框与文字垂直居中对齐 */
+        :root {
+            --primary-color: #3b82f6;
+            --primary-hover: #2563eb;
+            --secondary-color: #6366f1;
+            --text-color: #374151;
+            --text-secondary: #6b7280;
+            --background-color: #f9fafb;
+            --card-background: #ffffff;
+            --border-color: #e5e7eb;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --border-radius: 8px;
+            --transition: all 0.2s ease-in-out;
+            
+            /* Pub.dev 特定颜色 */
+            --pub-color: #3b82f6;
+            --pub-hover: #2563eb;
+            --pub-bg: #f3fafc;
+            
+            /* NPM.js 特定颜色 */
+            --npm-color: #ef4444;
+            --npm-hover: #dc2626;
+            --npm-bg: #fef2f2;
         }
-        button:hover { background-color: #45a049; }
-        .results { margin-top: 10px; }  /* 减少结果区域顶部边距 */
-        table { border-collapse: collapse; width: 100%; }
-        th, td { text-align: left; padding: 8px; border-bottom: 1px solid #ddd; }
-        th { background-color: #f2f2f2; }
-        .tab { overflow: hidden; border: 1px solid #ccc; background-color: #f1f1f1; display: flex; }
-        .tab button { background-color: inherit; flex: 1; border: none; outline: none; cursor: pointer; padding: 14px 16px; transition: 0.3s; color: black; text-align: center; }
-        .tab button:hover { background-color: #ddd; }
-        .tab button.active { background-color: #ccc; font-weight: bold; }
-        .tabcontent { display: none; padding: 15px; border: 1px solid #ccc; border-top: none; background-color: white; }
-        .tabcontent.active { display: block; }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 0;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 40px 0;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            line-height: 1.2;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 800px;
+        }
+
+        .card {
+            background: var(--card-background);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
+            padding: 24px;
+            margin-bottom: 24px;
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        /* 平台切换器和清空按钮容器 */
+        .platform-switcher-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+            gap: 16px;
+        }
+        
+        /* 平台切换器样式 */
+        .platform-switcher {
+            display: flex;
+            flex: 1;
+            border-radius: var(--border-radius);
+            background-color: #f3f4f6;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .platform-switch-btn {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            background: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .platform-switch-btn.active {
+            background-color: var(--card-background);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        .platform-switch-btn.pub.active {
+            color: var(--pub-color);
+        }
+        
+        .platform-switch-btn.npm.active {
+            color: var(--npm-color);
+        }
+        
+        /* 一键清空按钮样式 */
+        .clear-all-btn {
+            padding: 14px 32px;
+            border: none;
+            border-radius: var(--border-radius);
+            background: linear-gradient(135deg, #ff6b6b, #ee5253);
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-width: 180px;
+            box-shadow: var(--shadow-md);
+        }
+        
+        .clear-all-btn:hover {
+            background: linear-gradient(135deg, #ee5253, #ff6b6b);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .clear-all-btn:active {
+            transform: translateY(0);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .platform-switcher-container {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .platform-switcher {
+                width: 100%;
+            }
+            
+            .clear-all-btn {
+                width: 100%;
+                min-width: auto;
+            }
+        }
+        
+        /* 搜索表单样式 */
+        .search-sections {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        /* 加载框样式 */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            backdrop-filter: blur(4px);
+        }
+        
+        .loading-spinner {
+            padding: 0;
+            background-color: transparent;
+            border-radius: 0;
+            box-shadow: none;
+        }
     
-        /* 历史记录样式 - 修改为非绝对定位 */
-        .history-container { margin: 10px 0; width: 100%; }
-        .history-list { background-color: white; overflow-x: auto; border: 1px solid #ddd; display: flex; flex-wrap: wrap; padding: 5px; gap: 5px; }
-        .history-item { padding: 5px 10px; cursor: pointer; border: 1px solid #eee; border-radius: 4px; background-color: #f9f9f9; white-space: nowrap; }
-        .history-item:hover { background-color: #e6f7ff; }
-        .history-item.selected { background-color: #e6f7ff; }
-        .history-header { font-weight: bold; padding: 5px 8px; background-color: #f0f0f0; border-bottom: 1px solid #ddd; width: 100%; }
-        .clear-history { font-size: 12px; color: #666; cursor: pointer; float: right; }
-        .clear-history:hover { color: #333; }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 错误提示框样式 */
+        .error-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--error-color);
+            color: white;
+            padding: 16px 24px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-lg);
+            display: none;
+            align-items: center;
+            gap: 12px;
+            z-index: 10000;
+            max-width: 400px;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .error-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .error-content i {
+            font-size: 20px;
+        }
+        
+        .error-content span {
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        
+        /* 切换内容容器 */
+        .toggle-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        .toggle-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* 全屏结果区域 */
+        .fullscreen-results {
+            width: 100%;
+        }
+
+        form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .form-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: flex-start;
+            width: 100%;
+        }
+
+        input[name="pub_keyword"],
+        input[name="npm_keyword"] {
+            flex: 1;
+            min-width: 0;
+            padding: 12px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            transition: var(--transition);
+            min-height: 48px;
+            max-width: 100%;
+        }
+
+        input[name="pub_keyword"]:focus,
+        input[name="npm_keyword"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* 搜索输入框容器样式 */
+        .search-input-container {
+            position: relative;
+            flex: 1;
+            min-width: 0;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+            padding: 0;
+        }
+        
+        .search-input-container:focus-within {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        /* 清空搜索按钮样式 */
+        .clear-search-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px;
+            opacity: 1; /* 默认可见 */
+            transition: color 0.2s ease;
+            z-index: 10;
+        }
+        
+        /* 为了向后兼容保留visible类，但不再需要使用它 */
+        .clear-search-btn.visible {
+            opacity: 1;
+        }
+        
+        .clear-search-btn:hover {
+            color: var(--error-color);
+        }
+        
+        /* 确保输入框内容不被按钮遮挡 */
+        input[name="pub_keyword"],
+        input[name="npm_keyword"] {
+            padding-right: 40px;
+        }
+        
+        /* 设置搜索输入框的宽度为父组件的90%且去掉边框 */
+        #pub-search-keyword,
+        #npm-search-keyword {
+            width: 90%;
+            flex: none;
+            border: none;
+            background-color: transparent;
+            padding: 12px 16px;
+            min-height: 48px;
+        }
+        
+        /* 视觉区分Pub和NPM搜索表单 */
+        .search-container {
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .search-container.pub {
+            background-color: var(--pub-bg);
+            border-left: 4px solid var(--pub-color);
+        }
+        
+        .search-container.npm {
+            background-color: var(--npm-bg);
+            border-left: 4px solid var(--npm-color);
+        }
+        
+        .search-container.pub .search-button {
+            background-color: var(--pub-color);
+        }
+        
+        .search-container.pub .search-button:hover {
+            background-color: var(--pub-hover);
+        }
+        
+        .search-container.npm .search-button {
+            background-color: var(--npm-color);
+        }
+        
+        .search-container.npm .search-button:hover {
+            background-color: var(--npm-hover);
+        }
+
+        button[type="submit"] {
+            padding: 12px 24px;
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 48px;
+            flex-shrink: 0;
+        }
+
+        /* 搜索按钮样式与搜索所有包按钮保持一致 */
+        .pub-search-btn {
+            background-color: var(--pub-color);
+        }
+
+        .pub-search-btn:hover {
+            background-color: var(--pub-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        }
+
+        .npm-search-btn {
+            background-color: var(--npm-color);
+        }
+
+        .npm-search-btn:hover {
+            background-color: var(--npm-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+        }
+
+        button[type="submit"]:active {
+            transform: translateY(0);
+        }
+
+        .checkbox-container {
+            width: 100%;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .checkbox-container label {
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .history-section {
+            margin: 24px 0;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .history-list {
+            display: flex;
+            flex-wrap: wrap;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        /* 平台快速搜索样式 */
+        /* 平台快速搜索样式 */
+        .quick-search-container {
+            margin-bottom: 20px;
+        }
+        
+        .platforms-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .platform-card {
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .platform-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .pub-platform {
+            background-color: var(--pub-bg);
+            border-left: 4px solid var(--pub-color);
+        }
+        
+        .npm-platform {
+            background-color: var(--npm-bg);
+            border-left: 4px solid var(--npm-color);
+        }
+        
+        .platform-card h3 {
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .pub-platform h3 {
+            color: var(--pub-color);
+        }
+        
+        .npm-platform h3 {
+            color: var(--npm-color);
+        }
+        
+        .platform-package-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .platform-package-list .quick-package {
+            padding: 6px 12px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 16px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .platform-package-list .quick-package:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .pub-platform .quick-package {
+            color: var(--pub-color);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        .npm-platform .quick-package {
+            color: var(--npm-color);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .platform-card .search-all-btn {
+            width: 100%;
+            padding: 10px 16px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        
+        .pub-platform-btn {
+            background-color: var(--pub-color);
+        }
+        
+        /* 搜索框下方快速搜索样式 */
+        .section-title-small {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .platforms-container-small {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .platform-card-small {
+            padding: 12px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .platform-card-small:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        /* 产品快速搜索按钮样式 */
+        .product-search-container {
+            margin-bottom: 20px;
+            padding: 16px;
+            background-color: rgba(99, 102, 241, 0.05);
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+        
+        .product-buttons-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .product-search-btn {
+            padding: 10px 20px;
+            background-color: white;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 180px;
+        }
+        
+        .product-search-btn:hover {
+            background-color: var(--primary-color);
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+        }
+        
+        .product-search-btn:active {
+            transform: translateY(0);
+        }
+        
+        .pub-platform-btn:hover {
+            background-color: var(--pub-hover);
+        }
+        
+        .npm-platform-btn {
+            background-color: var(--npm-color);
+        }
+        
+        .npm-platform-btn:hover {
+            background-color: var(--npm-hover);
+        }
+        
+        /* 搜索历史分组样式 */
+        .history-group {
+            margin-bottom: 15px;
+        }
+        
+        .history-group h4 {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        
+        .history-group-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-left: 20px;
+        }
+
+        .history-item {
+            padding: 8px 16px;
+            background-color: #f3f4f6;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        .history-item:hover {
+            background-color: #e0e7ff;
+            border-color: var(--primary-color);
+            transform: translateY(-1px);
+        }
+
+        .clear-history {
+            color: var(--text-secondary);
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-left: auto;
+            text-decoration: underline;
+        }
+
+        .clear-history:hover {
+            color: var(--error-color);
+        }
+
+        /* 搜索结果样式 */
+        .results {
+            width: 100%;
+        }
+
+        .tab-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            background-color: #f9fafb;
+        }
+
+        .tab-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            background-color: #f9fafb;
+        }
+
+        .tab-header h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-color);
+            margin: 0;
+        }
+
+        /* 复制按钮样式 */
+        .copy-btn {
+            padding: 10px 20px;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .copy-btn:hover {
+            background-color: #4f46e5;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+        }
+
+        .copy-btn:active {
+            transform: translateY(0);
+        }
+
+        .copy-btn.copied {
+            background-color: var(--success-color);
+            animation: successPulse 0.5s ease-in-out;
+        }
+
+        @keyframes successPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+
+
+        .quick-package {
+            padding: 4px 12px;
+            background-color: #e0e7ff;
+            color: var(--primary-color);
+            border-radius: 16px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 1px solid transparent;
+        }
+
+        .quick-package:hover {
+            background-color: var(--primary-color);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .quick-package.selected {
+            animation: pulse 0.3s ease-in-out;
+            background-color: var(--success-color);
+            color: white;
+            border-color: var(--success-color);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); background-color: var(--success-color); }
+            100% { transform: scale(1); }
+        }
+
+        .search-all-btn {
+            width: 100%;
+            padding: 10px 16px;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 12px;
+        }
+
+        .search-all-btn:hover {
+            background-color: #4f46e5;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+        }
+
+        .search-keyword {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            overflow-x: auto;
+            display: block;
+        }
+
+        .results-table::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .results-table::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+
+        .results-table::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .results-table::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .results-table th {
+            background-color: #f8fafc;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 14px;
+            text-align: left;
+            padding: 12px 16px;
+            border-bottom: 2px solid var(--border-color);
+        }
+        
+        /* 设置第三列（更新时间/其他信息列）宽度自适应 */
+        .results-table th:nth-child(3),
+        .results-table td:nth-child(3) {
+            width: 100%;
+            white-space: normal;
+            word-wrap: break-word;
+        }
+
+        /* 防止包名列（第一列）换行 */
+        .results-table th:nth-child(1),
+        .results-table td:nth-child(1) {
+            white-space: nowrap;
+        }
+
+        .results-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+
+        .results-table tr:hover td {
+            background-color: #f8fafc;
+        }
+
+        .results-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .no-results {
+            padding: 40px 24px;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .no-results i {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            color: #cbd5e1;
+        }
+
+        .loading {
+            padding: 40px 24px;
+            text-align: center;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f4f6;
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: var(--text-secondary);
+            font-size: 16px;
+        }
+
+        .package-name {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .package-version {
+            background-color: #e0e7ff;
+            color: var(--secondary-color);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            border-top: 1px solid var(--border-color);
+            margin-top: 40px;
+        }
+
+        @media (max-width: 1024px) {
+            .content-container {
+                flex-direction: column;
+            }
+            
+            .pub-column,
+            .npm-column {
+                width: 100%;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .header-content {
+                padding: 0 16px;
+            }
+
+            .container {
+                padding: 16px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            form {
+                flex-direction: column;
+            }
+
+            input[name="keyword"] {
+                width: 100%;
+            }
+
+            button[type="submit"] {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .results-table {
+                font-size: 14px;
+            }
+
+            .results-table th,
+            .results-table td {
+                padding: 8px 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            .subtitle {
+                font-size: 1rem;
+            }
+
+            .card {
+                padding: 16px;
+            }
+        }
     </style>
     <script>
-        function openTab(evt, tabName) {
-            var i, tabcontent, tablinks;
-            tabcontent = document.getElementsByClassName("tabcontent");
-            for (i = 0; i < tabcontent.length; i++) {
-                tabcontent[i].classList.remove("active");
-                tabcontent[i].style.display = "none";
-            }
-            tablinks = document.getElementsByClassName("tablinks");
-            for (i = 0; i < tablinks.length; i++) {
-                tablinks[i].classList.remove("active");
-            }
-            document.getElementById(tabName).classList.add("active");
-            document.getElementById(tabName).style.display = "block";
-            evt.currentTarget.classList.add("active");
-        }
-    
-        // 默认显示第一个标签
-        document.addEventListener("DOMContentLoaded", function() {
-            // 确保标签按钮存在
-            const tabButtons = document.getElementsByClassName("tablinks");
-            if (tabButtons.length > 0) {
-                tabButtons[0].click();
-            }
-    
-            // 加载搜索历史
-            loadSearchHistory();
-    
-            // 表单提交事件
-            const searchForm = document.querySelector('form');
-            if (searchForm) {
-                searchForm.addEventListener('submit', function(event) {
-                    const keyword = document.querySelector('input[name="keyword"]').value.trim();
-                    console.log(keyword);
-                    if (keyword) {
-                        saveSearchHistory(keyword);
-                        // 清空之前的搜索结果
-                        document.getElementById('pubdev').querySelector('table')?.remove();
-                        document.getElementById('npmjs').querySelector('table')?.remove();
-                        document.getElementById('pubdev').innerHTML = '<h2>Pub.dev 搜索结果 (关键词: {{ keyword }})</h2><p style="color: #ff0000;">正在加载数据...</p>';
-                        document.getElementById('npmjs').innerHTML = '<h2>NPM.js 搜索结果 (关键词: {{ keyword }})</h2><p style="color: #ff0000;">正在加载数据...</p>';
-                    }
-                });
-            }
-        });
+
         
-       
+        // 清空搜索内容函数
+        function clearSearch(type) {
+            const searchInput = type === 'pub' ? 
+                document.getElementById('pub-search-keyword') : 
+                document.getElementById('npm-search-keyword');
+            
+            // 清空输入框内容
+            searchInput.value = '';
+            
+            // 隐藏清空按钮
+            const clearBtn = type === 'pub' ? 
+                document.getElementById('clear-pub-search') : 
+                document.getElementById('clear-npm-search');
+            clearBtn.classList.remove('visible');
+            
+            // 设置输入框焦点
+            searchInput.focus();
+        }
+        
+        // 显示加载框
+        function showLoading() {
+            const loadingOverlay = document.getElementById('search-loading');
+            if (loadingOverlay) {
+                loadingOverlay.style.display = 'flex';
+            }
+        }
+        
+        // 隐藏加载框
+        function hideLoading() {
+            const loadingOverlay = document.getElementById('search-loading');
+            if (loadingOverlay) {
+                loadingOverlay.style.display = 'none';
+            }
+        }
+        
+        // 显示错误提示
+        function showError(message) {
+            const errorToast = document.getElementById('error-toast');
+            const errorMessage = document.getElementById('error-message');
+            
+            if (errorMessage) {
+                errorMessage.textContent = message;
+            }
+            
+            if (errorToast) {
+                errorToast.style.display = 'flex';
+                // 3秒后自动隐藏
+                setTimeout(() => {
+                    errorToast.style.display = 'none';
+                }, 3000);
+            }
+        }
+        
+        // 一键清空所有内容函数
+        function clearAllContent() {
+            // 清空两个平台的搜索输入框
+            clearSearch('pub');
+            clearSearch('npm');
+            
+            // 取消所有快速搜索项的选中状态
+            document.querySelectorAll('.quick-package.selected').forEach(packageEl => {
+                packageEl.classList.remove('selected');
+            });
+            
+            // 刷新页面以清除搜索结果（因为搜索结果是服务端渲染的）
+            location.reload();
+        }
         
         // 保存搜索历史
-        function saveSearchHistory(keyword) {
+        function saveSearchHistory(keyword, type = 'pub') {
             if (!keyword || keyword.trim() === '') return;
             
-            let history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+            // 根据类型分别存储搜索历史
+            let pubHistory = JSON.parse(localStorage.getItem('pubSearchHistory') || '[]');
+            let npmHistory = JSON.parse(localStorage.getItem('npmSearchHistory') || '[]');
             
-            // 避免重复添加
-            if (!history.includes(keyword)) {
-                history.unshift(keyword);  // 添加到开头
-                if (history.length > 100) {  // 最多保留100条记录
-                    history = history.slice(0, 100);
+            if (type === 'pub') {
+                // 避免重复添加
+                if (!pubHistory.includes(keyword)) {
+                    pubHistory.unshift(keyword);  // 添加到开头
+                    if (pubHistory.length > 100) {  // 最多保留100条记录
+                        pubHistory = pubHistory.slice(0, 100);
+                    }
+                    localStorage.setItem('pubSearchHistory', JSON.stringify(pubHistory));
                 }
-                localStorage.setItem('searchHistory', JSON.stringify(history));
+            } else {
+                // 避免重复添加
+                if (!npmHistory.includes(keyword)) {
+                    npmHistory.unshift(keyword);  // 添加到开头
+                    if (npmHistory.length > 100) {  // 最多保留100条记录
+                        npmHistory = npmHistory.slice(0, 100);
+                    }
+                    localStorage.setItem('npmSearchHistory', JSON.stringify(npmHistory));
+                }
             }
             
             loadSearchHistory();
@@ -141,29 +1155,77 @@
         // 加载搜索历史
         function loadSearchHistory() {
             const historyList = document.querySelector('.history-list');
-            const history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+            const pubHistory = JSON.parse(localStorage.getItem('pubSearchHistory') || '[]');
+            const npmHistory = JSON.parse(localStorage.getItem('npmSearchHistory') || '[]');
             
-            //如果没有就插入
-            if (!history.includes('zego_uikit,zego_uikit_prebuilt_call,zego_uikit_signaling_plugin')) {
-                history.unshift('zego_uikit,zego_uikit_prebuilt_call,zego_uikit_signaling_plugin');
-            }
-
-            if (history.length === 0) {
-                historyList.innerHTML = '<div class="history-header">搜索历史</div><div class="history-item">暂无搜索历史</div>';
+            // 如果没有历史记录，添加默认示例
+            if (pubHistory.length === 0 && npmHistory.length === 0) {
+                const defaultPubKeywords = 'zego_uikit,zego_uikit_prebuilt_call';
+                const defaultNpmKeywords = '@zegocloud/zego-uikit-prebuilt-call-rn';
+                historyList.innerHTML = `
+                    <div class="section-title">
+                        <i class="fas fa-history"></i> 常用搜索
+                        <span class="clear-history" onclick="clearSearchHistory()">清除</span>
+                    </div>
+                    <div class="history-group">
+                        <h4>pub.dev 常用</h4>
+                        <div class="history-item" onclick="selectHistoryItem('${defaultPubKeywords}', 'pub')">${defaultPubKeywords}</div>
+                    </div>
+                    <div class="history-group">
+                        <h4>npm.js 常用</h4>
+                        <div class="history-item" onclick="selectHistoryItem('${defaultNpmKeywords}', 'npm')">${defaultNpmKeywords}</div>
+                    </div>
+                `;
                 return;
             }
             
-            let html = '<div class="history-header">搜索历史 <span class="clear-history" onclick="clearSearchHistory()">清除</span></div>';
-            history.forEach(item => {
-                html += `<div class="history-item" onclick="selectHistoryItem('${item}')">${item}</div>`;
-            });
+            let html = `
+                <div class="section-title">
+                    <i class="fas fa-history"></i> 搜索历史
+                    <span class="clear-history" onclick="clearSearchHistory()">清除</span>
+                </div>
+            `;
+            
+            // 添加Pub历史记录
+            if (pubHistory.length > 0) {
+                html += `
+                    <div class="history-group">
+                        <h4><i class="fab fa-dart"></i> Pub.dev 历史</h4>
+                `;
+                pubHistory.forEach(item => {
+                    // 转义引号以避免JavaScript错误
+                    const escapedItem = item.replace(/'/g, '\\\'');
+                    html += `<div class="history-item" onclick="selectHistoryItem('${escapedItem}', 'pub')">${item}</div>`;
+                });
+                html += `</div>`;
+            }
+            
+            // 添加NPM历史记录
+            if (npmHistory.length > 0) {
+                html += `
+                    <div class="history-group">
+                        <h4>npm.js 历史</h4>
+                `;
+                npmHistory.forEach(item => {
+                    // 转义引号以避免JavaScript错误
+                    const escapedItem = item.replace(/'/g, '\\\'');
+                    html += `<div class="history-item" onclick="selectHistoryItem('${escapedItem}', 'npm')">${item}</div>`;
+                });
+                html += `</div>`;
+            }
             
             historyList.innerHTML = html;
         }
         
         // 选择历史记录项
-        function selectHistoryItem(keyword) {
-            const searchInput = document.querySelector('input[name="keyword"]');
+        function selectHistoryItem(keyword, type = 'pub') {
+            let searchInput;
+            if (type === 'pub') {
+                searchInput = document.querySelector('input[name="pub_keyword"]');
+            } else {
+                searchInput = document.querySelector('input[name="npm_keyword"]');
+            }
+            
             const currentValue = searchInput.value.trim();
             
             if (currentValue === '') {
@@ -171,81 +1233,702 @@
             } else if (!currentValue.includes(keyword)) {
                 searchInput.value = `${currentValue}, ${keyword}`;
             }
+            
+            // 添加输入框聚焦效果
+            searchInput.focus();
+            
+            // 添加选中动画
+            const historyItems = document.querySelectorAll('.history-item');
+            historyItems.forEach(item => {
+                if (item.textContent === keyword) {
+                    item.classList.add('selected');
+                    setTimeout(() => {
+                        item.classList.remove('selected');
+                    }, 300);
+                }
+            });
         }
         
         // 清除搜索历史
         function clearSearchHistory() {
-            localStorage.removeItem('searchHistory');
-            loadSearchHistory();
+            if (confirm('确定要清除所有搜索历史吗？')) {
+                localStorage.removeItem('pubSearchHistory');
+                localStorage.removeItem('npmSearchHistory');
+                loadSearchHistory();
+            }
         }
         
-    
+        // 平台切换函数
+        window.switchPlatform = function(platform) {
+            // 切换平台切换按钮状态
+            document.querySelectorAll('.platform-switch-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`.platform-switch-btn.${platform}`).classList.add('active');
+            
+            // 切换内容区域显示
+            document.querySelectorAll('.toggle-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // 显示对应平台的内容和结果
+            document.getElementById(`${platform}-content`).classList.add('active');
+            document.getElementById(`${platform}-results`).classList.add('active');
+        }
+        
+        // 产品快速搜索功能
+        window.productQuickSearch = function(productType, platform = 'pub') {
+            const searchInput = platform === 'pub' ? 
+                document.getElementById('pub-search-keyword') : 
+                document.getElementById('npm-search-keyword');
+            let packages = [];
+            
+            // 根据产品类型和平台设置对应的包名
+            switch(productType) {
+                case 'call':
+                    if (platform === 'pub') {
+                        packages = ['zego_uikit_prebuilt_call', 'zego_uikit_signaling_plugin', 'zego_uikit'];
+                    } else {
+                        packages = ['@zegocloud/zego-uikit-prebuilt-call-rn', '@zegocloud/zego-uikit-rn'];
+                    }
+                    break;
+                case 'live_streaming':
+                    if (platform === 'pub') {
+                        packages = ['zego_uikit_signaling_plugin', 'zego_uikit_prebuilt_live_streaming', 'zego_uikit'];
+                    } else {
+                        packages = ['@zegocloud/zego-uikit-prebuilt-live-streaming-rn', '@zegocloud/zego-uikit-rn'];
+                    }
+                    break;
+                case 'live_audio':
+                    if (platform === 'pub') {
+                        packages = ['zego_uikit_prebuilt_live_audio_room', 'zego_uikit'];
+                    } else {
+                        packages = ['@zegocloud/zego-uikit-prebuilt-live-audio-room-rn', '@zegocloud/zego-uikit-rn'];
+                    }
+                    break;
+                case 'video_conference':
+                    if (platform === 'pub') {
+                        packages = ['zego_uikit_prebuilt_video_conference', 'zego_uikit'];
+                    } else {
+                        packages = ['@zegocloud/zego-uikit-prebuilt-video-conference-rn', '@zegocloud/zego-uikit-rn'];
+                    }
+                    break;
+                case 'in_app_chat':
+                    if (platform === 'pub') {
+                        packages = ['zego_zimkit', 'zego_uikit'];
+                    } else {
+                        packages = ['@zegocloud/zimkit-rn', '@zegocloud/zego-uikit-rn'];
+                    }
+                    break;
+            }
+            
+            // 设置搜索框值
+            searchInput.value = packages.join(', ');
+            
+            // 切换到对应平台
+            switchPlatform(platform);
+            
+            // 保存搜索历史
+            saveSearchHistory(packages.join(', '), platform);
+            
+            // 显示加载框
+            showLoading();
+            
+            // 使用AJAX提交搜索请求
+            const endpoint = platform === 'pub' ? '/search-pub' : '/search-npm';
+            const exactMatch = document.getElementById(platform === 'pub' ? 'pub_exact_match' : 'npm_exact_match').checked;
+            
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    [platform === 'pub' ? 'pub_keyword' : 'npm_keyword']: packages.join(', '),
+                    [platform === 'pub' ? 'pub_exact_match' : 'npm_exact_match']: exactMatch
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('搜索请求失败: ' + response.statusText);
+                }
+                return response.text();
+            })
+            .then(html => {
+                // 隐藏加载框
+                hideLoading();
+                
+                // 解析HTML并更新结果区域
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const resultsId = platform === 'pub' ? 'pub-results' : 'npm-results';
+                const newResults = doc.getElementById(resultsId);
+                
+                if (newResults) {
+                    const existingResults = document.getElementById(resultsId);
+                    existingResults.innerHTML = newResults.innerHTML;
+                    
+                    // 滚动到结果区域
+                    existingResults.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            })
+            .catch(error => {
+                // 隐藏加载框
+                hideLoading();
+                // 显示错误提示
+                showError('搜索失败: ' + error.message);
+                console.error('搜索错误:', error);
+            });
+        }
+        
+        // 文档加载完成后执行
+        document.addEventListener("DOMContentLoaded", function() {
+            // 加载搜索历史
+            loadSearchHistory();
+            
+            // 获取搜索输入框和清空按钮元素
+            const pubSearchInput = document.getElementById('pub-search-keyword');
+            const npmSearchInput = document.getElementById('npm-search-keyword');
+            const clearPubButton = document.getElementById('clear-pub-search');
+            const clearNpmButton = document.getElementById('clear-npm-search');
+            
+            // 确保所有搜索按钮始终显示（添加visible类以保证样式一致性）
+            if (clearPubButton) {
+                clearPubButton.classList.add('visible');
+            }
+            
+            if (clearNpmButton) {
+                clearNpmButton.classList.add('visible');
+            }
+            
+            // 检查是否有npm搜索关键词或结果，如果有则自动切换到npm标签页
+            if (npmSearchInput && npmSearchInput.value.trim() !== '') {
+                switchPlatform('npm');
+            } else {
+                // 检查是否有npm结果元素存在且不为空
+                const npmResults = document.getElementById('npm-results');
+                if (npmResults && npmResults.querySelector('.results-table')) {
+                    switchPlatform('npm');
+                }
+            }
+            
+            // Pub搜索表单提交事件
+            const pubSearchForm = document.querySelector('form[action="/search-pub"]');
+            if (pubSearchForm) {
+                pubSearchForm.addEventListener('submit', function(event) {
+                    event.preventDefault(); // 阻止默认提交
+                    
+                    const keyword = document.querySelector('input[name="pub_keyword"]').value.trim();
+                    if (!keyword) {
+                        showError('请输入搜索关键词');
+                        return;
+                    }
+                    
+                    const exactMatch = document.getElementById('pub_exact_match').checked;
+                    
+                    // 保存搜索历史
+                    saveSearchHistory(keyword, 'pub');
+                    
+                    // 显示加载框
+                    showLoading();
+                    
+                    // 使用AJAX提交搜索请求
+                    fetch('/search-pub', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            pub_keyword: keyword,
+                            pub_exact_match: exactMatch
+                        })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('搜索请求失败: ' + response.statusText);
+                        }
+                        return response.text();
+                    })
+                    .then(html => {
+                        // 隐藏加载框
+                        hideLoading();
+                        
+                        // 解析HTML并更新结果区域
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        const newPubResults = doc.getElementById('pub-results');
+                        
+                        if (newPubResults) {
+                            const existingPubResults = document.getElementById('pub-results');
+                            existingPubResults.innerHTML = newPubResults.innerHTML;
+                            
+                            // 滚动到结果区域
+                            existingPubResults.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    })
+                    .catch(error => {
+                        // 隐藏加载框
+                        hideLoading();
+                        // 显示错误提示
+                        showError('搜索失败: ' + error.message);
+                        console.error('搜索错误:', error);
+                    });
+                });
+            }
+            
+            // NPM搜索表单提交事件
+            const npmSearchForm = document.querySelector('form[action="/search-npm"]');
+            if (npmSearchForm) {
+                npmSearchForm.addEventListener('submit', function(event) {
+                    event.preventDefault(); // 阻止默认提交
+                    
+                    const keyword = document.querySelector('input[name="npm_keyword"]').value.trim();
+                    if (!keyword) {
+                        showError('请输入搜索关键词');
+                        return;
+                    }
+                    
+                    const exactMatch = document.getElementById('npm_exact_match').checked;
+                    
+                    // 保存搜索历史
+                    saveSearchHistory(keyword, 'npm');
+                    
+                    // 显示加载框
+                    showLoading();
+                    
+                    // 使用AJAX提交搜索请求
+                    fetch('/search-npm', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            npm_keyword: keyword,
+                            npm_exact_match: exactMatch
+                        })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('搜索请求失败: ' + response.statusText);
+                        }
+                        return response.text();
+                    })
+                    .then(html => {
+                        // 隐藏加载框
+                        hideLoading();
+                        
+                        // 解析HTML并更新结果区域
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        const newNpmResults = doc.getElementById('npm-results');
+                        
+                        if (newNpmResults) {
+                            const existingNpmResults = document.getElementById('npm-results');
+                            existingNpmResults.innerHTML = newNpmResults.innerHTML;
+                            
+                            // 切换到npm平台
+                            switchPlatform('npm');
+                            
+                            // 滚动到结果区域
+                            existingNpmResults.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    })
+                    .catch(error => {
+                        // 隐藏加载框
+                        hideLoading();
+                        // 显示错误提示
+                        showError('搜索失败: ' + error.message);
+                        console.error('搜索错误:', error);
+                    });
+                });
+            }
+            
+            // 页面加载完成后，如果有搜索结果则滚动到结果区域
+            setTimeout(() => {
+                // 检查当前激活的平台和是否有搜索结果
+                const activePlatform = document.querySelector('.platform-switch-btn.active').classList.contains('pub') ? 'pub' : 'npm';
+                const resultsElement = document.getElementById(activePlatform + '-results');
+                
+                if (resultsElement && resultsElement.querySelector('.results-table')) {
+                    // 滚动到搜索结果区域
+                    resultsElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 100);
+            
+            // 快速搜索功能 - 修改为多选
+            document.querySelectorAll('.quick-package').forEach(packageEl => {
+                packageEl.addEventListener('click', function() {
+                    const packageName = this.getAttribute('data-package');
+                    const isPub = this.closest('.pub-platform') !== null;
+                    const searchInput = isPub ? document.getElementById('pub-search-keyword') : document.getElementById('npm-search-keyword');
+                    
+                    // 切换选中状态
+                    if (this.classList.contains('selected')) {
+                        // 取消选中
+                        this.classList.remove('selected');
+                        // 从输入框中移除包名
+                        const currentPackages = searchInput.value.split(',').map(p => p.trim()).filter(p => p !== '');
+                        const newPackages = currentPackages.filter(p => p !== packageName);
+                        searchInput.value = newPackages.join(', ');
+                    } else {
+                        // 选中
+                        this.classList.add('selected');
+                        // 添加包名到输入框
+                        const currentValue = searchInput.value.trim();
+                        if (currentValue === '') {
+                            searchInput.value = packageName;
+                        } else if (!currentValue.includes(packageName)) {
+                            searchInput.value = `${currentValue}, ${packageName}`;
+                        }
+                    }
+                    
+                    // 添加输入框聚焦效果
+                    searchInput.focus();
+                });
+            });
+        });
     </script>
 </head>
 <body>
-    <h1>包搜索工具</h1>
-    <form action="/search" method="post">
-        <input type="text" name="keyword" placeholder="请输入搜索关键词，多个包名用逗号分隔" value="{{ keyword }}" required>
-        <button type="submit">搜索</button>
-        <div class="checkbox-container">
-            <label><input type="checkbox" name="exact_match" class="widthcheckbox" checked> 精准查询（每个包名只显示第一个结果）</label>
+    <header>
+        <div class="header-content">
+            <h1><i class="fas fa-box-open"></i> 包搜索工具</h1>
         </div>
-    </form>
+    </header>
     
-    <!-- 搜索历史区域 - 移到表单外部 -->
-    <div class="history-container">
-        <div class="history-list"></div>
+    <div class="container">
+        <!-- 平台切换器和清空按钮 -->
+        <div class="platform-switcher-container">
+            <div class="platform-switcher">
+                <button class="platform-switch-btn pub active" onclick="switchPlatform('pub')">
+                    pub.dev
+                </button>
+                <button class="platform-switch-btn npm" onclick="switchPlatform('npm')">
+                    npm.js
+                </button>
+            </div>
+
+        </div>
+        
+        <!-- 切换内容区域 -->
+        <div id="pub-content" class="toggle-content active">
+            <!-- Pub.dev 搜索和快速搜索组合区域 -->
+            <div class="card pub-search-card search-sections">
+                <form action="/search-pub" method="post">
+                    <div class="form-group">
+                        <div class="search-input-container">
+                            <input 
+                                type="text" 
+                                name="pub_keyword" 
+                                id="pub-search-keyword"
+                                placeholder="请输入包名，用逗号分隔" 
+                                value="{{ pub_keyword }}" 
+                                autocomplete="off"
+                            >
+                            <button type="button" class="clear-search-btn" id="clear-pub-search" onclick="clearSearch('pub')">
+                                <i class="fas fa-times-circle"></i>
+                            </button>
+                        </div>
+                        <button type="submit" class="pub-search-btn">
+                            <i class="fas fa-search"></i> 搜索
+                        </button>
+                    </div>
+                    
+                    <div class="checkbox-container">
+                        <input 
+                            type="checkbox" 
+                            name="pub_exact_match" 
+                            id="pub_exact_match"
+                            {{ 'checked' if pub_exact_match else '' }}
+                        >
+                        <label for="pub_exact_match">精准查询（每个包名只显示第一个结果）</label>
+                    </div>
+                    
+
+                    
+                    <!-- 产品快速搜索入口 -->
+                    <div class="product-search-container">
+                        <div class="section-title-small">
+                            一键搜索
+                        </div>
+                        
+                        <div class="product-buttons-container">
+                            <button class="product-search-btn" onclick="productQuickSearch('call')">
+                                <i class="fas fa-phone-alt"></i> Call Kit
+                            </button>
+                            <button class="product-search-btn" onclick="productQuickSearch('live_streaming')">
+                                <i class="fas fa-video"></i> Live Streaming Kit
+                            </button>
+                            <button class="product-search-btn" onclick="productQuickSearch('live_audio')">
+                                <i class="fas fa-microphone"></i> Live Audio Room Kit
+                            </button>
+                            <button class="product-search-btn" onclick="productQuickSearch('video_conference')">
+                                <i class="fas fa-users"></i> Video Conference Kit
+                            </button>
+                            <button class="product-search-btn" onclick="productQuickSearch('in_app_chat')">
+                                <i class="fas fa-comment-alt"></i> In-app Chat Kit
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Flutter 平台快速搜索 -->
+                    <div class="quick-search-container">
+                        <div class="section-title-small">
+                            <i class="fab fa-dart"></i>快速搜索
+                        </div>
+                        
+                        <div class="platforms-container-small">
+                            <div class="platform-card-small pub-platform">
+                                <div class="platform-package-list">
+                                    <span class="quick-package" data-package="zego_uikit_prebuilt_call">zego_uikit_prebuilt_call</span>
+                                    <span class="quick-package" data-package="zego_uikit_signaling_plugin">zego_uikit_signaling_plugin</span>
+                                    <span class="quick-package" data-package="zego_uikit_prebuilt_live_streaming">zego_uikit_prebuilt_live_streaming</span>
+                                    <span class="quick-package" data-package="zego_uikit_prebuilt_live_audio_room">zego_uikit_prebuilt_live_audio_room</span>
+                                    <span class="quick-package" data-package="zego_uikit_prebuilt_video_conference">zego_uikit_prebuilt_video_conference</span>
+                                    <span class="quick-package" data-package="zego_zimkit">zego_zimkit</span>
+                                    <span class="quick-package" data-package="zego_uikit">zego_uikit</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </form>
+            </div>
+        </div>
+        
+        <div id="npm-content" class="toggle-content">
+            <!-- NPM.js 搜索和快速搜索组合区域 -->
+            <div class="card npm-search-card search-sections">
+                <form action="/search-npm" method="post">
+                    <div class="form-group">
+                        <div class="search-input-container">
+                            <input 
+                                type="text" 
+                                name="npm_keyword" 
+                                id="npm-search-keyword"
+                                placeholder="请输入包名，用逗号分隔" 
+                                value="{{ npm_keyword }}" 
+                                autocomplete="off"
+                            >
+                            <button type="button" class="clear-search-btn" id="clear-npm-search" onclick="clearSearch('npm')">
+                                <i class="fas fa-times-circle"></i>
+                            </button>
+                        </div>
+                        <button type="submit" class="npm-search-btn search-button">
+                            <i class="fas fa-search"></i> 搜索
+                        </button>
+                    </div>
+                    
+                    <div class="checkbox-container">
+                        <input 
+                            type="checkbox" 
+                            name="npm_exact_match" 
+                            id="npm_exact_match"
+                            {{ 'checked' if npm_exact_match else '' }}
+                        >
+                        <label for="npm_exact_match">精准查询（每个包名只显示第一个结果）</label>
+                    </div>
+                    
+                    <!-- 产品快速搜索入口 -->
+                    <div class="product-search-container">
+                        <div class="section-title-small">
+                            一键搜索
+                        </div>
+                        
+                        <div class="product-buttons-container">
+                            <button class="product-search-btn" onclick="productQuickSearch('call', 'npm')">
+                                <i class="fas fa-phone-alt"></i> Call Kit
+                            </button>
+                            <button class="product-search-btn" onclick="productQuickSearch('live_streaming', 'npm')">
+                                <i class="fas fa-video"></i> Live Streaming Kit
+                            </button>
+                            <button class="product-search-btn" onclick="productQuickSearch('live_audio', 'npm')">
+                                <i class="fas fa-microphone"></i> Live Audio Room Kit
+                            </button>
+                            <button class="product-search-btn" onclick="productQuickSearch('video_conference', 'npm')">
+                                <i class="fas fa-users"></i> Video Conference Kit
+                            </button>
+                            <button class="product-search-btn" onclick="productQuickSearch('in_app_chat', 'npm')">
+                                <i class="fas fa-comment-alt"></i> In-app Chat Kit
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- JavaScript/React Native 平台快速搜索 -->
+                    <div class="quick-search-container">
+                        <div class="section-title-small">
+                            快速搜索
+                        </div>
+                   
+                    <div class="platforms-container-small">
+                        <div class="platform-card-small npm-platform">
+                            <div class="platform-package-list">
+                                <span class="quick-package" data-package="@zegocloud/zego-uikit-prebuilt-call-rn">@zegocloud/zego-uikit-prebuilt-call-rn</span>
+                                <span class="quick-package" data-package="@zegocloud/zego-uikit-prebuilt-live-streaming-rn">@zegocloud/zego-uikit-prebuilt-live-streaming-rn</span>
+                                <span class="quick-package" data-package="@zegocloud/zego-uikit-prebuilt-live-audio-room-rn">@zegocloud/zego-uikit-prebuilt-live-audio-room-rn</span>
+                                <span class="quick-package" data-package="@zegocloud/zego-uikit-prebuilt-video-conference-rn">@zegocloud/zego-uikit-prebuilt-video-conference-rn</span>
+                                <span class="quick-package" data-package="@zegocloud/zimkit-rn">@zegocloud/zimkit-rn</span>
+                                <span class="quick-package" data-package="@zegocloud/zego-uikit-rn">@zegocloud/zego-uikit-rn</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 全屏结果展示区域 -->
+        <div class="fullscreen-results">
+            <!-- Pub.dev 搜索结果 -->
+            <div id="pub-results" class="toggle-content active">
+                <div class="card results">
+                    <div class="tab-header">
+                        <h2>搜索结果</h2>
+                        <button class="copy-btn" onclick="copyResults('pub', event)">
+                            <i class="fas fa-copy"></i> 一键复制
+                        </button>
+                    </div>
+                    {% if pubdev_data %}
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>包名</th>
+                                <th>版本</th>
+                                <th>更新时间</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in pubdev_data %}
+                            <tr>
+                                <td class="package-name">{{ item[0] }}</td>
+                                <td><span class="package-version">{{ item[1] }}</span></td>
+                                <td>{{ item[2] }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="no-results">
+                        <i class="fas fa-search"></i>
+                        <p>没有找到相关的包信息</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- NPM.js 搜索结果 -->
+            <div id="npm-results" class="toggle-content">
+                <div class="card results">
+                    <div class="tab-header">
+                        <h2>搜索结果</h2>
+                        <button class="copy-btn" onclick="copyResults('npm', event)">
+                            <i class="fas fa-copy"></i> 一键复制
+                        </button>
+                    </div>
+                    {% if npmjs_data %}
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>包名</th>
+                                <th>版本</th>
+                                <th>其他信息</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in npmjs_data %}
+                            <tr>
+                                <td class="package-name">{{ item[0] }}</td>
+                                <td><span class="package-version">{{ item[1] }}</span></td>
+                                <td>{{ item[2] }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="no-results">
+                        <i class="fas fa-search"></i>
+                        <p>没有找到相关的包信息</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- 搜索历史部分 -->
+        <div class="history-section card">
+            <div class="history-list"></div>
+        </div>
     </div>
     
-    <div class="results">
-        <div class="tab">
-            <button class="tablinks active" onclick="openTab(event, 'pubdev')">Pub.dev 结果</button>
-            <button class="tablinks" onclick="openTab(event, 'npmjs')">NPM.js 结果</button>
-        </div>
+    <footer>
+        <p>&copy; {{ current_year }} 包搜索工具 | 提供高效的跨平台包信息查询服务</p>
+    </footer>
     
-        <div id="pubdev" class="tabcontent active">
-            <h2>Pub.dev 搜索结果 (关键词: {{ keyword }})</h2>
-            {% if pubdev_data %}
-            <table>
-                <tr>
-                    <th>包名</th>
-                    <th>版本</th>
-                    <th>更新时间</th>
-                </tr>
-                {% for item in pubdev_data %}
-                <tr>
-                    <td>{{ item[0] }}</td>
-                    <td>{{ item[1] }}</td>
-                    <td>{{ item[2] }}</td>
-                </tr>
-                {% endfor %}
-            </table>
-            {% else %}
-            <p>没有找到相关的包信息</p>
-            {% endif %}
-        </div>
-    
-        <div id="npmjs" class="tabcontent">
-            <h2>NPM.js 搜索结果 (关键词: {{ keyword }})</h2>
-            {% if npmjs_data %}
-            <table>
-                <tr>
-                    <th>包名</th>
-                    <th>版本</th>
-                    <th>其他信息</th>
-                </tr>
-                {% for item in npmjs_data %}
-                <tr>
-                    <td>{{ item[0] }}</td>
-                    <td>{{ item[1] }}</td>
-                    <td>{{ item[2] }}</td>
-                </tr>
-                {% endfor %}
-            </table>
-            {% else %}
-            <p>没有找到相关的包信息</p>
-            {% endif %}
+    <!-- 搜索加载框 -->
+    <div id="search-loading" class="loading-overlay">
+        <div class="loading-spinner">
         </div>
     </div>
+    
+    <!-- 错误提示框 -->
+    <div id="error-toast" class="error-toast">
+        <div class="error-content">
+            <i class="fas fa-exclamation-circle"></i>
+            <span id="error-message">搜索失败，请稍后重试</span>
+        </div>
+    </div>
+    
+    <script>
+        // 一键复制功能
+        function copyResults(platform, event) {
+            // 阻止事件冒泡和默认行为
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            
+            const resultsContainer = document.getElementById(`${platform}-results`);
+            const resultRows = resultsContainer.querySelectorAll('.results-table tbody tr');
+            
+            if (resultRows.length === 0) {
+                alert('没有可复制的搜索结果');
+                return;
+            }
+            
+            let copyText = '';
+            
+            resultRows.forEach(row => {
+                const packageName = row.querySelector('.package-name').textContent;
+                const packageVersion = row.querySelector('.package-version').textContent;
+                
+                if (platform === 'pub') {
+                    // Pub.dev 格式: 包名:^版本号
+                    copyText += `${packageName}:^${packageVersion}\n`;
+                } else {
+                    // NPM.js 格式: "包名": "版本号"
+                    copyText += `"${packageName}": "${packageVersion}"\n`;
+                }
+            });
+            
+            // 复制到剪贴板
+            navigator.clipboard.writeText(copyText.trim())
+                .then(() => {
+                    // 显示复制成功提示
+                    const copyBtn = resultsContainer.querySelector('.copy-btn');
+                    const originalText = copyBtn.innerHTML;
+                    copyBtn.innerHTML = '<i class="fas fa-check"></i> 已复制';
+                    copyBtn.classList.add('copied');
+                    
+                    // 2秒后恢复原始状态
+                    setTimeout(() => {
+                        copyBtn.innerHTML = originalText;
+                        copyBtn.classList.remove('copied');
+                    }, 2000);
+                })
+                .catch(err => {
+                    console.error('复制失败:', err);
+                    alert('复制失败，请手动复制');
+                });
+        }
+    </script>
 </body>
 </html>
